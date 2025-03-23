@@ -1,4 +1,7 @@
 spring:
   redis:
-    host: localhost  # Redis ?? ??
-    port: 6379        # Redis ?? ??
+    host: localhost
+    port: 6379
+
+  cache:
+    type: redis

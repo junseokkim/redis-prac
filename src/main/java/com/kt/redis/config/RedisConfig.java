@@ -1,27 +1,34 @@
 package com.kt.redis.config;
 
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.redis.cache.RedisCacheConfiguration;
+import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import java.time.Duration;
+
 @Configuration
+@EnableCaching  // Spring Cache 기능 활성화
 public class RedisConfig {
 
-    // RedisTemplate: Redis에 접근하는 핵심 클래스
+    // RedisConnectionFactory는 Spring Boot에서 자동 설정됨
+
     @Bean
-    public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+    public RedisCacheManager cacheManager(RedisConnectionFactory redisConnectionFactory) {
 
-        // Key는 문자열로 저장
-        template.setKeySerializer(new StringRedisSerializer());
+        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
+                .entryTtl(Duration.ofMinutes(10)) // 캐시 기본 TTL (10분)
+                .disableCachingNullValues() // null 값은 캐싱하지 않음
+                .serializeKeysWith(RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()))
+                .serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(new GenericJackson2JsonRedisSerializer()));
 
-        // Value는 JSON 형태로 저장 (Java 객체 직렬화보다 호환성, 가독성 좋음)
-        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-
-        return template;
+        return RedisCacheManager.builder(redisConnectionFactory)
+                .cacheDefaults(config)
+                .build();
     }
 }
