@@ -1,1 +1,4 @@
-spring.application.name=redis
+spring:
+  redis:
+    host: localhost  # Redis ?? ??
+    port: 6379        # Redis ?? ??
